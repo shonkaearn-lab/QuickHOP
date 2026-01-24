@@ -1,120 +1,72 @@
-# QuickHoP - Quick Hand of Protection Targeting
+# QuickHoP
 
-A standalone World of Warcraft addon for quickly casting Hand of Protection on a pre-set target.
+Quick Hand of Protection targeting addon for World of Warcraft 1.12 (Vanilla) and TurtleWoW.
 
 ## Features
 
-- **Set a HoP Target**: Save a specific player as your Hand of Protection target
-- **Quick Cast**: Cast HoP on your saved target with a single keybind or button click
-- **Visual Feedback**: On-screen messages and UI window to show current target
-- **Cooldown Tracking**: Real-time cooldown display showing when HoP is ready
-- **Cast Counter**: Track how many times you've cast HoP this session
-- **Multi-language Support**: English, German, and French localization
-- **Works in Parties and Raids**: Automatically finds your target whether solo, in a party, or raid
-- **Interactive UI**: 
-  - **Left-click button**: Cast HoP on saved target
-  - **Right-click button**: Set current target as HoP target
-  - **Shift+Right-click button**: Clear saved target
-  - **Hover**: See detailed tooltip with instructions and cooldown
+- **One-Click HoP Casting**: Set a target once, cast HoP instantly with a single click
+- **Visual UI**: Compact, draggable interface showing your target and cooldown
+- **Highest Rank Detection**: Always casts the highest rank of Hand of Protection you have
+- **Keybindings**: Bind keys for setting target, clearing target, and casting
+- **Party/Raid Sync**: See what other paladins with QuickHoP are protecting
+- **Macro Support**: Use `/qhop` commands in macros for advanced functionality
 
-## Installation
+### Installation Via Git Addons Manager (Recommended)
+1. Install [Git Addons Manager](https://github.com/beholder-rpa/git-addons-manager) for TurtleWoW
+2. Add addon: `https://github.com/shonkaearn-lab/QuickHoP`
+3. Click Install
+4. Restart WoW
 
-1. Download the QuickHoP folder
-2. Place it in your `World of Warcraft/Interface/AddOns/` directory
-3. Restart WoW or reload UI (`/reload`)
+### Manual Installation
+1. Download the latest release
+2. Extract the `QuickHoP` folder to `Interface/AddOns/`
+3. Restart WoW
 
 ## Usage
 
-### UI Window
+### Main UI Controls
 
-The QuickHoP window displays:
-- **HoP Icon**: The actual spell icon from your spellbook
-- **Target Name**: Shows who you'll cast HoP on (green when set, red when not set)
-- **Cooldown Timer**: Real-time countdown showing when HoP is ready
-- **Cast Count**: How many times you've used HoP this session
+The main UI shows your HoP target, the spell icon, and cooldown timer.
 
-**Button Interactions**:
 - **Left-click**: Cast HoP on your saved target
-- **Right-click**: Set your current target as the HoP target
-- **Shift+Right-click**: Clear the saved HoP target
-- **Hover**: View tooltip with full instructions and current status
+- **Right-click**: Set current target as HoP target
+- **Alt+Right-click**: Clear saved target
+- **Shift+Right-click**: Hide UI
+- **Ctrl+Left-click**: Open options menu
+- **Drag**: Click and drag anywhere on the UI to move it
 
 ### Slash Commands
 
-- `/qhop help` - Show all available commands
-- `/qhop set` - Set your current target as the HoP target
-- `/qhop clear` - Clear the saved HoP target
-- `/qhop cast` - Cast Hand of Protection on your saved target
-- `/qhop status` - Show who your current HoP target is
-- `/qhop toggle` - Show/hide the QuickHoP UI window
+- `/qhop set` - Set your current target as HoP target
+- `/qhop clear` - Clear your saved HoP target
+- `/qhop cast` - Cast HoP on your saved target
+- `/qhop show` - Toggle UI visibility
+- `/qhop options` - Open options menu
+- `/qhop help` - Show help
 
 ### Keybindings
 
-For fastest usage, bind keys in:
-**ESC > Key Bindings > QuickHoP**
+Go to **Key Bindings > QuickHoP** to set up hotkeys:
+- Set HoP Target
+- Clear HoP Target
+- Cast HoP on Target
 
-Available keybinds:
-- **Set HoP Target** - Set current target as HoP target
-- **Clear HoP Target** - Clear the saved target
-- **Cast HoP on Target** - Cast HoP on saved target
+## How It Works
 
-### Typical Workflow
+1. **Set a target**: Right-click the UI (or use `/qhop set`) while targeting someone
+2. **Cast HoP**: Left-click the UI (or use `/qhop cast`) to instantly cast HoP on that person
+3. **No target needed**: The addon finds and casts on your saved target even if you're targeting something else
 
-1. Target the player you want to protect (usually a clothie, healer, or someone who pulls aggro)
-2. Press your "Set HoP Target" keybind or type `/qhop set`
-3. During combat, press your "Cast HoP on Target" keybind to instantly cast HoP on them
-4. No need to retarget - keeps your current target!
+## Target Finding
 
-## Examples
-
-**Example 1: Using the UI Window**
-1. Open the QuickHoP window (`/qhop toggle` or it opens by default)
-2. Target the player you want to protect
-3. Right-click the HoP button (target name turns green)
-4. During combat, left-click the button to instantly cast HoP on them
-
-**Example 2: Protecting Your Main Tank with Keybinds**
-```
-/target Maintankname
-/qhop set
-```
-Now you can spam your cast HoP keybind whenever the tank is in trouble.
-
-**Example 3: Protecting a Healer in Raid**
-1. Target your healer
-2. Right-click the QuickHoP button
-3. Watch the cooldown timer
-4. When healer pulls aggro, left-click to save them instantly
-
-## Error Messages
-
-The addon will warn you if:
-- No HoP target is set
-- Your target is out of range
-- Your target is not in the raid/party
-- Hand of Protection is not in your spellbook
-
-## Credits
-
-Extracted from **PallyPower** by Relar for TurtleWoW
-
-This functionality was originally part of the full PallyPower addon and has been isolated into a standalone addon for players who only want the Hand of Protection targeting feature.
-
-## Version
-
-**Version 1.2**
-
-### Changelog
-- **v1.2**: Complete UI overhaul with cooldown tracking, cast counter, and interactive button (left-click to cast, right-click to set target, shift+right-click to clear)
-- **v1.1.1**: Fixed OnUpdate error spam (elapsed time parameter handling for WoW 1.12)
-- **v1.1**: Fixed self-casting bug - HoP will never cast on yourself unless you explicitly set yourself as the target
-- **v1.0**: Initial release
+You can set anyone as your HoP target and the addon will find them as long as they're:
+- Friendly
+- Alive+
+- Within 30 yards
 
 ## Compatibility
 
-- **Interface:** 11200 (WoW 1.12 / Vanilla / TurtleWoW)
-- **Class:** Paladin only
+- **Client**: WoW 1.12 (Vanilla)
+- **Server**: TurtleWoW, any 1.12 server
+- **Class**: Paladin only (UI auto-hides for other classes)
 
-## License
-
-Free to use and modify. Credit to original PallyPower addon.
