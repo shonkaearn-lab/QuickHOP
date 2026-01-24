@@ -1,0 +1,286 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+    
+    <!-- Main QuickHoP Frame -->
+    <Frame name="QuickHoPFrame" parent="UIParent" frameStrata="MEDIUM" toplevel="true" movable="true" enableMouse="true" hidden="false">
+        <Size>
+            <AbsDimension x="120" y="40"/>
+        </Size>
+        <Anchors>
+            <Anchor point="CENTER"/>
+        </Anchors>
+        
+        <Frames>
+            <Button name="QuickHoPFrameButton" enableMouse="true">
+                <Size>
+                    <AbsDimension x="120" y="40"/>
+                </Size>
+                <Anchors>
+                    <Anchor point="CENTER"/>
+                </Anchors>
+                <Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+                    <EdgeSize>
+                        <AbsValue val="12"/>
+                    </EdgeSize>
+                    <TileSize>
+                        <AbsValue val="12"/>
+                    </TileSize>
+                    <BackgroundInsets>
+                        <AbsInset left="3" right="3" top="3" bottom="3"/>
+                    </BackgroundInsets>
+                </Backdrop>
+                
+                <Layers>
+                    <Layer level="ARTWORK">
+                        <!-- HoP Icon on Left -->
+                        <Texture name="$parentIcon" file="Interface\Icons\Spell_Holy_SealOfProtection">
+                            <Size>
+                                <AbsDimension x="28" y="28"/>
+                            </Size>
+                            <Anchors>
+                                <Anchor point="LEFT">
+                                    <Offset>
+                                        <AbsDimension x="4" y="0"/>
+                                    </Offset>
+                                </Anchor>
+                            </Anchors>
+                        </Texture>
+                    </Layer>
+                    <Layer level="OVERLAY">
+                        <!-- Target Name - Top Right -->
+                        <FontString name="$parentTargetText" inherits="GameFontNormal" text="No Target">
+                            <Anchors>
+                                <Anchor point="TOPLEFT" relativeTo="$parentIcon" relativePoint="TOPRIGHT">
+                                    <Offset>
+                                        <AbsDimension x="4" y="0"/>
+                                    </Offset>
+                                </Anchor>
+                            </Anchors>
+                        </FontString>
+                        
+                        <!-- Cooldown - Bottom Right -->
+                        <FontString name="$parentCooldownText" inherits="GameFontHighlight" text="Ready">
+                            <Anchors>
+                                <Anchor point="BOTTOMLEFT" relativeTo="$parentIcon" relativePoint="BOTTOMRIGHT">
+                                    <Offset>
+                                        <AbsDimension x="4" y="0"/>
+                                    </Offset>
+                                </Anchor>
+                            </Anchors>
+                        </FontString>
+                    </Layer>
+                </Layers>
+                
+                <Scripts>
+                    <OnLoad>
+                        this:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+                        this:RegisterForDrag("LeftButton")
+                        this:SetBackdropColor(0.3, 0.0, 0.0, 0.8)
+                    </OnLoad>
+                    <OnClick>
+                        QuickHoP_Button_OnClick(this)
+                    </OnClick>
+                    <OnDragStart>
+                        QuickHoPFrame:StartMoving()
+                    </OnDragStart>
+                    <OnDragStop>
+                        QuickHoPFrame:StopMovingOrSizing()
+                    </OnDragStop>
+                    <OnEnter>
+                        QuickHoP_Button_OnEnter()
+                    </OnEnter>
+                    <OnLeave>
+                        QuickHoP_Button_OnLeave()
+                    </OnLeave>
+                </Scripts>
+            </Button>
+        </Frames>
+        
+        <Scripts>
+            <OnLoad>
+                QuickHoP_OnLoad()
+                this:RegisterForDrag("LeftButton")
+            </OnLoad>
+            <OnDragStart>
+                this:StartMoving()
+            </OnDragStart>
+            <OnDragStop>
+                this:StopMovingOrSizing()
+            </OnDragStop>
+            <OnShow>
+                QuickHoP_UpdateUI()
+            </OnShow>
+            <OnUpdate>
+                QuickHoP_UpdateUI()
+            </OnUpdate>
+        </Scripts>
+    </Frame>
+    
+    <!-- Options Frame -->
+    <Frame name="QuickHoPOptionsFrame" parent="UIParent" frameStrata="DIALOG" toplevel="true" movable="true" enableMouse="true" hidden="true">
+        <Size>
+            <AbsDimension x="280" y="350"/>
+        </Size>
+        <Anchors>
+            <Anchor point="CENTER"/>
+        </Anchors>
+        <Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background" edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+            <EdgeSize>
+                <AbsValue val="16"/>
+            </EdgeSize>
+            <TileSize>
+                <AbsValue val="16"/>
+            </TileSize>
+            <BackgroundInsets>
+                <AbsInset left="5" right="5" top="5" bottom="5"/>
+            </BackgroundInsets>
+        </Backdrop>
+        
+        <Layers>
+            <Layer level="OVERLAY">
+                <FontString name="$parentTitle" inherits="GameFontNormalLarge" text="QuickHoP Options">
+                    <Anchors>
+                        <Anchor point="TOP">
+                            <Offset>
+                                <AbsDimension x="0" y="-10"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+                
+                <!-- Party List Header -->
+                <FontString name="$parentPartyHeader" inherits="GameFontNormal" text="Party/Raid HoP Targets:">
+                    <Anchors>
+                        <Anchor point="TOPLEFT">
+                            <Offset>
+                                <AbsDimension x="15" y="-32"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+                
+                <!-- Divider Line (approximate) -->
+                <FontString name="$parentDivider" inherits="GameFontNormalSmall" text="────────────────────────">
+                    <Anchors>
+                        <Anchor point="TOPLEFT">
+                            <Offset>
+                                <AbsDimension x="15" y="-180"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+                
+                <FontString name="$parentOptionsHeader" inherits="GameFontNormal" text="Settings:">
+                    <Anchors>
+                        <Anchor point="TOPLEFT">
+                            <Offset>
+                                <AbsDimension x="15" y="-195"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+                
+                <FontString name="$parentScaleLabel" inherits="GameFontNormalSmall" text="UI Scale:">
+                    <Anchors>
+                        <Anchor point="TOPLEFT">
+                            <Offset>
+                                <AbsDimension x="15" y="-215"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+                
+                <FontString name="$parentMacroTitle" inherits="GameFontNormal" text="Macros:">
+                    <Anchors>
+                        <Anchor point="TOPLEFT">
+                            <Offset>
+                                <AbsDimension x="15" y="-260"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+                
+                <FontString name="$parentMacro1" inherits="GameFontHighlightSmall" text="/qhop set">
+                    <Anchors>
+                        <Anchor point="TOPLEFT">
+                            <Offset>
+                                <AbsDimension x="20" y="-277"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+                
+                <FontString name="$parentMacro2" inherits="GameFontHighlightSmall" text="/qhop clear">
+                    <Anchors>
+                        <Anchor point="TOPLEFT">
+                            <Offset>
+                                <AbsDimension x="20" y="-292"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+                
+                <FontString name="$parentMacro3" inherits="GameFontHighlightSmall" text="/qhop cast">
+                    <Anchors>
+                        <Anchor point="TOPLEFT">
+                            <Offset>
+                                <AbsDimension x="20" y="-307"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+        
+        <Frames>
+            <Slider name="$parentScaleSlider" inherits="OptionsSliderTemplate" minValue="0.5" maxValue="2.0" valueStep="0.1">
+                <Size>
+                    <AbsDimension x="200" y="17"/>
+                </Size>
+                <Anchors>
+                    <Anchor point="TOPLEFT">
+                        <Offset>
+                            <AbsDimension x="15" y="-228"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+                <Scripts>
+                    <OnShow>
+                        this:SetValue(QuickHoP_Settings.scale or 1.0)
+                        getglobal(this:GetName().."Low"):SetText("0.5")
+                        getglobal(this:GetName().."High"):SetText("2.0")
+                        getglobal(this:GetName().."Text"):SetText(string.format("%.1f", QuickHoP_Settings.scale or 1.0))
+                    </OnShow>
+                    <OnValueChanged>
+                        QuickHoP_Settings.scale = this:GetValue()
+                        getglobal(this:GetName().."Text"):SetText(string.format("%.1f", QuickHoP_Settings.scale))
+                        QuickHoP_UpdateUI()
+                    </OnValueChanged>
+                </Scripts>
+            </Slider>
+            
+            <Button name="$parentCloseButton" inherits="UIPanelCloseButton">
+                <Anchors>
+                    <Anchor point="TOPRIGHT">
+                        <Offset>
+                            <AbsDimension x="-2" y="-2"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+        </Frames>
+        
+        <Scripts>
+            <OnLoad>
+                this:RegisterForDrag("LeftButton")
+                this:SetBackdropColor(0.0, 0.0, 0.0, 0.9)
+            </OnLoad>
+            <OnDragStart>
+                this:StartMoving()
+            </OnDragStart>
+            <OnDragStop>
+                this:StopMovingOrSizing()
+            </OnDragStop>
+        </Scripts>
+    </Frame>
+    
+</Ui>

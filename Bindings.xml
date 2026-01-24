@@ -1,0 +1,5 @@
+<Bindings>
+    <Binding name="QUICKHOP_SET" header="QUICKHOP">QuickHoP_SetTarget();</Binding>
+    <Binding name="QUICKHOP_CLEAR" header="QUICKHOP">QuickHoP_ClearTarget();</Binding>
+    <Binding name="QUICKHOP_CAST" header="QUICKHOP">QuickHoP_CastHoP();</Binding>
+</Bindings>
