@@ -1,12 +1,8 @@
--- QuickHoP - Quick Hand of Protection targeting addon
--- Extracted from PallyPower by Relar
-
 BINDING_HEADER_QUICKHOP = "QuickHoP"
 BINDING_NAME_QUICKHOP_SET = "Set HoP Target"
 BINDING_NAME_QUICKHOP_CLEAR = "Clear HoP Target"
 BINDING_NAME_QUICKHOP_CAST = "Cast HoP on Target"
 
--- Initialize saved variables with proper defaults
 if not QuickHoP_Settings then
     QuickHoP_Settings = {}
 end
@@ -16,29 +12,25 @@ if QuickHoP_Settings.showCooldown == nil then QuickHoP_Settings.showCooldown = t
 if QuickHoP_Settings.showTarget == nil then QuickHoP_Settings.showTarget = true end
 if QuickHoP_Settings.showIcon == nil then QuickHoP_Settings.showIcon = true end
 
--- Frame for event handling
 local QuickHoP_Frame = CreateFrame("Frame")
 local QuickHoP_HoPSpellIndex = nil
 local QuickHoP_HoPCooldown = 0
-local QuickHoP_PartyData = {}  -- Stores other players' targets
+local QuickHoP_PartyData = {}
 local QuickHoP_SyncTimer = 0
-local QuickHoP_AddonPrefix = "QuickHoP"
-local QuickHoP_CachedSpellIndex = nil  -- Cache the spell index
-local QuickHoP_CachedSpellTexture = nil  -- Cache the spell texture
-local QuickHoP_CachedSpellRank = nil  -- Cache the spell rank for tooltip
+local QuickHoP_AddonPrefix = "QkHoP"
+local QuickHoP_CachedSpellIndex = nil
+local QuickHoP_CachedSpellTexture = nil
+local QuickHoP_CachedSpellRank = nil
+QuickHoP_DebugMode = false
 
 function QuickHoP_OnLoad()
-    -- Register addon message prefix for party/raid communication
-    RegisterAddonMessagePrefix(QuickHoP_AddonPrefix)
-    
-    QuickHoP_Frame:RegisterEvent("PLAYER_LOGIN")
-    QuickHoP_Frame:RegisterEvent("SPELLS_CHANGED")
-    QuickHoP_Frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-    QuickHoP_Frame:RegisterEvent("CHAT_MSG_ADDON")
-    QuickHoP_Frame:RegisterEvent("PARTY_MEMBERS_CHANGED")
-    QuickHoP_Frame:RegisterEvent("RAID_ROSTER_UPDATE")
-    QuickHoP_Frame:SetScript("OnEvent", QuickHoP_OnEvent)
-    QuickHoP_Frame:SetScript("OnUpdate", QuickHoP_OnUpdate)
+    this:RegisterEvent("PLAYER_LOGIN")
+    this:RegisterEvent("SPELLS_CHANGED")
+    this:RegisterEvent("PLAYER_ENTERING_WORLD")
+    this:RegisterEvent("CHAT_MSG_ADDON")
+    this:RegisterEvent("PARTY_MEMBERS_CHANGED")
+    this:RegisterEvent("RAID_ROSTER_UPDATE")
+    this:SetBackdropColor(0.0, 0.0, 0.0, 0.5)
     
     DEFAULT_CHAT_FRAME:AddMessage("|cFF00FF00QuickHoP|r version "..QuickHoP_Version.." loaded successfully!")
     DEFAULT_CHAT_FRAME:AddMessage("|cFF00FF00QuickHoP|r: Use /qhop or /quickhop for commands")
@@ -47,14 +39,12 @@ end
 function QuickHoP_OnUpdate(elapsed)
     if not elapsed then return end
     
-    -- Broadcast our target to party/raid every 5 seconds
     QuickHoP_SyncTimer = QuickHoP_SyncTimer + elapsed
     if QuickHoP_SyncTimer >= 5 then
         QuickHoP_SyncTimer = 0
         QuickHoP_BroadcastTarget()
     end
     
-    -- Update UI once per second
     QuickHoP_UIUpdateTimer = (QuickHoP_UIUpdateTimer or 0) + elapsed
     if QuickHoP_UIUpdateTimer >= 1.0 then
         QuickHoP_UIUpdateTimer = 0
@@ -67,8 +57,14 @@ function QuickHoP_OnEvent(event)
         QuickHoP_ScanSpells()
         QuickHoP_UpdateUI()
         QuickHoP_BroadcastTarget()
-    elseif event == "CHAT_MSG_ADDON" and arg1 == QuickHoP_AddonPrefix then
-        QuickHoP_ReceiveTarget(arg2, arg4)  -- arg2 = message, arg4 = sender
+    elseif event == "CHAT_MSG_ADDON" then
+        if QuickHoP_DebugMode then
+            DEFAULT_CHAT_FRAME:AddMessage("[QHoP DEBUG] CHAT_MSG_ADDON: prefix="..tostring(arg1)..", msg="..tostring(arg2)..", channel="..tostring(arg3)..", sender="..tostring(arg4), 0.7, 0.7, 1)
+        end
+        
+        if arg1 == QuickHoP_AddonPrefix and (arg3 == "PARTY" or arg3 == "RAID") then
+            QuickHoP_ReceiveTarget(arg4, arg2)
+        end
     elseif event == "PARTY_MEMBERS_CHANGED" or event == "RAID_ROSTER_UPDATE" then
         QuickHoP_BroadcastTarget()
         QuickHoP_UpdateOptionsUI()
@@ -76,7 +72,6 @@ function QuickHoP_OnEvent(event)
 end
 
 function QuickHoP_ScanSpells()
-    -- Find Hand of Protection in spellbook - find HIGHEST rank
     local highestRank = 0
     local i = 1
     QuickHoP_CachedSpellIndex = nil
@@ -123,10 +118,38 @@ function QuickHoP_SlashHandler(msg)
         QuickHoP_ToggleWindow()
     elseif msg == "options" or msg == "config" or msg == "menu" then
         QuickHoP_ShowOptions()
+    elseif msg == "debug" then
+        QuickHoP_Debug()
     elseif msg == "help" or msg == "" then
         QuickHoP_ShowHelp()
     else
         DEFAULT_CHAT_FRAME:AddMessage("|cFF00FF00QuickHoP|r: Unknown command. Type /qhop help for help.")
+    end
+end
+
+function QuickHoP_Debug()
+    if QuickHoP_DebugMode then
+        QuickHoP_DebugMode = false
+        DEFAULT_CHAT_FRAME:AddMessage("|cFF00FF00QuickHoP Debug Mode: |cFFFF0000OFF|r")
+    else
+        QuickHoP_DebugMode = true
+        DEFAULT_CHAT_FRAME:AddMessage("|cFF00FF00QuickHoP Debug Mode: |cFF00FF00ON|r")
+        DEFAULT_CHAT_FRAME:AddMessage("You will now see all addon communication")
+    end
+    
+    DEFAULT_CHAT_FRAME:AddMessage("|cFF00FF00QuickHoP Debug Info:|r")
+    DEFAULT_CHAT_FRAME:AddMessage("- Prefix: "..QuickHoP_AddonPrefix)
+    DEFAULT_CHAT_FRAME:AddMessage("- Your target: "..(QuickHoP_Settings.target or "NONE"))
+    DEFAULT_CHAT_FRAME:AddMessage("- In raid: "..(GetNumRaidMembers() > 0 and "YES ("..GetNumRaidMembers().." members)" or "NO"))
+    DEFAULT_CHAT_FRAME:AddMessage("- In party: "..(GetNumPartyMembers() > 0 and "YES ("..GetNumPartyMembers().." members)" or "NO"))
+    DEFAULT_CHAT_FRAME:AddMessage("- Known paladin targets:")
+    local count = 0
+    for name, target in pairs(QuickHoP_PartyData) do
+        DEFAULT_CHAT_FRAME:AddMessage("  "..name.." -> "..target)
+        count = count + 1
+    end
+    if count == 0 then
+        DEFAULT_CHAT_FRAME:AddMessage("  (none - no other paladins detected)")
     end
 end
 
@@ -137,6 +160,7 @@ function QuickHoP_ShowHelp()
     DEFAULT_CHAT_FRAME:AddMessage("/qhop cast - Cast HoP on saved target")
     DEFAULT_CHAT_FRAME:AddMessage("/qhop show - Toggle UI window")
     DEFAULT_CHAT_FRAME:AddMessage("/qhop options - Open options menu")
+    DEFAULT_CHAT_FRAME:AddMessage("/qhop debug - Show debug info")
     DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFF00Macros:|r /qhop set, /qhop clear, /qhop cast")
     DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFF00Tip:|r Bind keys in Key Bindings > QuickHoP")
 end
@@ -161,29 +185,51 @@ end
 
 function QuickHoP_BroadcastTarget()
     local channel = nil
-    if GetNumRaidMembers() > 0 then
+    if GetNumRaidMembers() == 0 then
+        if GetNumPartyMembers() > 0 then
+            channel = "PARTY"
+        end
+    else
         channel = "RAID"
-    elseif GetNumPartyMembers() > 0 then
-        channel = "PARTY"
     end
     
     if channel then
         local target = QuickHoP_Settings.target or "NONE"
-        SendAddonMessage(QuickHoP_AddonPrefix, target, channel)
+        local playerName = UnitName("player")
+        SendAddonMessage(QuickHoP_AddonPrefix, target, channel, playerName)
+        if QuickHoP_DebugMode then
+            DEFAULT_CHAT_FRAME:AddMessage("[QHoP DEBUG] Sent: "..QuickHoP_AddonPrefix.." -> "..target.." on "..channel.." from "..playerName, 0.5, 1, 0.5)
+        end
     end
 end
 
-function QuickHoP_ReceiveTarget(message, sender)
+function QuickHoP_ReceiveTarget(sender, message)
+    if QuickHoP_DebugMode then
+        DEFAULT_CHAT_FRAME:AddMessage("[QHoP DEBUG] Received from "..sender..": "..message, 1, 0.5, 0.5)
+    end
+    
+    if sender == UnitName("player") then
+        if QuickHoP_DebugMode then
+            DEFAULT_CHAT_FRAME:AddMessage("[QHoP DEBUG] Ignoring own message", 1, 1, 0)
+        end
+        return
+    end
+    
     if message == "NONE" then
         QuickHoP_PartyData[sender] = nil
+        if QuickHoP_DebugMode then
+            DEFAULT_CHAT_FRAME:AddMessage("[QHoP DEBUG] Cleared target for "..sender, 1, 0.5, 0)
+        end
     else
         QuickHoP_PartyData[sender] = message
+        if QuickHoP_DebugMode then
+            DEFAULT_CHAT_FRAME:AddMessage("[QHoP DEBUG] Set target for "..sender.." -> "..message, 0, 1, 0)
+        end
     end
     QuickHoP_UpdateOptionsUI()
 end
 
 function QuickHoP_UpdateOptionsUI()
-    -- Update the party list in options if it's showing
     if QuickHoPOptionsFrame and QuickHoPOptionsFrame:IsVisible() then
         QuickHoP_RefreshPartyList()
     end
@@ -203,16 +249,12 @@ function QuickHoP_CastHoP()
         return
     end
     
-    -- Find the target unit - check player, target, party, and raid
     local targetUnit = nil
     
-    -- Check if it's the player
     if UnitName("player") == QuickHoP_Settings.target then
         targetUnit = "player"
-    -- Check current target
     elseif UnitExists("target") and UnitName("target") == QuickHoP_Settings.target then
         targetUnit = "target"
-    -- Check raid members
     elseif GetNumRaidMembers() > 0 then
         for i = 1, GetNumRaidMembers() do
             if UnitName("raid"..i) == QuickHoP_Settings.target then
@@ -220,7 +262,6 @@ function QuickHoP_CastHoP()
                 break
             end
         end
-    -- Check party members
     elseif GetNumPartyMembers() > 0 then
         for i = 1, GetNumPartyMembers() do
             if UnitName("party"..i) == QuickHoP_Settings.target then
@@ -235,62 +276,26 @@ function QuickHoP_CastHoP()
         return
     end
     
-    -- Validate target is friendly and alive
-    if not UnitIsFriend("player", targetUnit) or UnitIsDead(targetUnit) then
-        QuickHoP_ShowFeedback("Target must be a friendly, living player", 1.0, 0.0, 0.0)
-        return
-    end
-    
-    -- Check range
-    if not UnitIsVisible(targetUnit) or not CheckInteractDistance(targetUnit, 4) then
-        QuickHoP_ShowFeedback(QuickHoP_BoPTargetNotInRange, 1.0, 0.0, 0.0)
-        return
-    end
-    
-    -- Find Hand of Protection spell - scan ALL spells to find HIGHEST rank
-    local spellIndex = nil
-    local highestRank = 0
-    local i = 1
-    while true do
-        local spellName, rank = GetSpellName(i, BOOKTYPE_SPELL)
-        if not spellName then
-            break
-        end
-        if string.find(spellName, QuickHoP_BoPSpellName) then
-            -- Extract rank number
-            local rankNum = 0
-            if rank and rank ~= "" then
-                local _, _, num = string.find(rank, "(%d+)")
-                if num then
-                    rankNum = tonumber(num)
-                end
-            end
-            
-            -- Keep the highest rank
-            if rankNum >= highestRank then
-                highestRank = rankNum
-                spellIndex = i
-            end
-        end
-        i = i + 1
-    end
-    
-    if not spellIndex then
+    if not QuickHoP_HoPSpellIndex then
         QuickHoP_ShowFeedback(QuickHoP_SpellNotFound, 1.0, 0.0, 0.0)
         return
     end
     
-    -- Cast the spell on the target unit
-    CastSpell(spellIndex, BOOKTYPE_SPELL)
+    if not SpellCanTargetUnit(targetUnit) then
+        QuickHoP_ShowFeedback(QuickHoP_BoPTargetNotInRange, 1.0, 0.0, 0.0)
+        return
+    end
+    
+    CastSpell(QuickHoP_HoPSpellIndex, BOOKTYPE_SPELL)
     if SpellIsTargeting() then
         SpellTargetUnit(targetUnit)
+        QuickHoP_ShowFeedback(format(QuickHoP_BoPCastSuccess, QuickHoP_Settings.target), 0.0, 1.0, 0.0)
     end
-    QuickHoP_ShowFeedback(format(QuickHoP_BoPCastSuccess, QuickHoP_Settings.target), 0.0, 1.0, 0.0)
 end
 
-function QuickHoP_ShowFeedback(msg, r, g, b, a)
+function QuickHoP_ShowFeedback(msg, r, g, b)
     if QuickHoP_Settings.showfeedback then
-        UIErrorsFrame:AddMessage(msg, r, g, b, a or 1.0)
+        DEFAULT_CHAT_FRAME:AddMessage("|cFF00FF00QuickHoP|r: "..msg, r, g, b)
     end
 end
 
@@ -302,13 +307,12 @@ function QuickHoP_ToggleWindow()
     end
 end
 
-function QuickHoP_FormatTime(time)
-    if not time or time <= 0 then
-        return "Ready"
+function QuickHoP_FormatTime(seconds)
+    if seconds >= 60 then
+        return string.format("%dm", math.floor(seconds / 60))
+    else
+        return string.format("%ds", math.floor(seconds))
     end
-    local mins = math.floor(time / 60)
-    local secs = math.floor(time - (mins * 60))
-    return string.format("%d:%02d", mins, secs)
 end
 
 function QuickHoP_ShowOptions()
@@ -326,7 +330,6 @@ function QuickHoP_ShowOptions()
 end
 
 function QuickHoP_RefreshPartyList()
-    -- Clear existing party list
     for i = 1, 40 do
         local row = getglobal("QuickHoPOptionsFrameParty"..i)
         if row then
@@ -337,17 +340,14 @@ function QuickHoP_RefreshPartyList()
     local yOffset = -40
     local rowNum = 1
     
-    -- Collect all paladins in party/raid
     local paladins = {}
     local playerName = UnitName("player")
     
-    -- Add self if paladin
     local _, playerClass = UnitClass("player")
     if playerClass == "PALADIN" then
         table.insert(paladins, {name = playerName, target = QuickHoP_Settings.target, hasAddon = true, isSelf = true})
     end
     
-    -- Scan party/raid for other paladins
     local numMembers = GetNumRaidMembers() > 0 and GetNumRaidMembers() or GetNumPartyMembers()
     local unitPrefix = GetNumRaidMembers() > 0 and "raid" or "party"
     
@@ -365,7 +365,6 @@ function QuickHoP_RefreshPartyList()
         end
     end
     
-    -- Display paladins
     for i, paladin in ipairs(paladins) do
         local row = getglobal("QuickHoPOptionsFrameParty"..rowNum)
         if not row then
@@ -417,19 +416,16 @@ end
 function QuickHoP_UpdateUI()
     if not QuickHoPFrame then return end
     
-    -- Hide UI completely if not a paladin
     local _, playerClass = UnitClass("player")
     if playerClass ~= "PALADIN" then
         QuickHoPFrame:Hide()
         return
     end
     
-    -- If we don't have cached spell data, scan for it
     if not QuickHoP_CachedSpellIndex then
         QuickHoP_ScanSpells()
     end
     
-    -- Apply scale
     QuickHoPFrame:SetScale(QuickHoP_Settings.scale or 1.0)
     
     local btn = getglobal("QuickHoPFrameButton")
@@ -439,11 +435,9 @@ function QuickHoP_UpdateUI()
     local targetText = getglobal("QuickHoPFrameButtonTargetText")
     local cooldownText = getglobal("QuickHoPFrameButtonCooldownText")
     
-    -- Use cached spell data instead of scanning every update
     local spellIndex = QuickHoP_CachedSpellIndex
     local spellTexture = QuickHoP_CachedSpellTexture
     
-    -- Update icon
     if icon then
         local showIcon = QuickHoP_Settings.showIcon
         if showIcon == nil then showIcon = true end
@@ -456,7 +450,6 @@ function QuickHoP_UpdateUI()
         end
     end
     
-    -- Update target text
     if targetText then
         local showTarget = QuickHoP_Settings.showTarget
         if showTarget == nil then showTarget = true end
@@ -477,7 +470,6 @@ function QuickHoP_UpdateUI()
         end
     end
     
-    -- Update cooldown text
     if cooldownText then
         local showCooldown = QuickHoP_Settings.showCooldown
         if showCooldown == nil then showCooldown = true end
@@ -526,18 +518,17 @@ end
 function QuickHoP_Button_OnEnter()
     GameTooltip:SetOwner(this, "ANCHOR_TOPLEFT")
     
-    -- Use cached spell rank
     if QuickHoP_CachedSpellRank and QuickHoP_CachedSpellRank ~= "" then
         GameTooltip:SetText("Hand of Protection (" .. QuickHoP_CachedSpellRank .. ")", 1, 1, 1)
     else
         GameTooltip:SetText("Hand of Protection", 1, 1, 1)
     end
     
-    GameTooltip:AddLine("Left-click: Cast HoP", 1, 1, 0)  -- Yellow
-    GameTooltip:AddLine("Right-click: Set current target", 0, 1, 0)  -- Green
-    GameTooltip:AddLine("Alt+Right-click: Clear target", 1, 0.8, 0)  -- Light orange
-    GameTooltip:AddLine("Shift+Right-click: Hide UI", 1, 0.5, 0)  -- Orange
-    GameTooltip:AddLine("Ctrl+Left-click: Options", 1, 1, 1)  -- White
+    GameTooltip:AddLine("Left-click: Cast HoP", 1, 1, 0)
+    GameTooltip:AddLine("Right-click: Set current target", 0, 1, 0)
+    GameTooltip:AddLine("Alt+Right-click: Clear target", 1, 0.8, 0)
+    GameTooltip:AddLine("Shift+Right-click: Hide UI", 1, 0.5, 0)
+    GameTooltip:AddLine("Ctrl+Left-click: Options", 1, 1, 1)
     
     GameTooltip:Show()
 end

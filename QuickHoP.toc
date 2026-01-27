@@ -2,7 +2,7 @@
 ## Title: QuickHoP
 ## Notes: Quick Hand of Protection targeting addon - Set a target and cast HoP on them with a keybind
 ## Author: Relar (Extracted from PallyPower)
-## Version: 1.2
+## Version: 1.3
 ## SavedVariables: QuickHoP_Settings
 
 localization.lua

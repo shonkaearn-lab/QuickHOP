@@ -1,4 +1,4 @@
-QuickHoP_Version = "1.2"
+QuickHoP_Version = "1.3"
 SLASH_QUICKHOP1 = "/qhop"
 SLASH_QUICKHOP2 = "/quickhop"
 

@@ -1,6 +1,5 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
     
-    <!-- Main QuickHoP Frame -->
     <Frame name="QuickHoPFrame" parent="UIParent" frameStrata="MEDIUM" toplevel="true" movable="true" enableMouse="true" hidden="false">
         <Size>
             <AbsDimension x="120" y="40"/>
@@ -31,7 +30,6 @@
                 
                 <Layers>
                     <Layer level="ARTWORK">
-                        <!-- HoP Icon on Left -->
                         <Texture name="$parentIcon" file="Interface\Icons\Spell_Holy_SealOfProtection">
                             <Size>
                                 <AbsDimension x="28" y="28"/>
@@ -46,7 +44,6 @@
                         </Texture>
                     </Layer>
                     <Layer level="OVERLAY">
-                        <!-- Target Name - Top Right -->
                         <FontString name="$parentTargetText" inherits="GameFontNormal" text="No Target">
                             <Anchors>
                                 <Anchor point="TOPLEFT" relativeTo="$parentIcon" relativePoint="TOPRIGHT">
@@ -57,7 +54,6 @@
                             </Anchors>
                         </FontString>
                         
-                        <!-- Cooldown - Bottom Right -->
                         <FontString name="$parentCooldownText" inherits="GameFontHighlight" text="Ready">
                             <Anchors>
                                 <Anchor point="BOTTOMLEFT" relativeTo="$parentIcon" relativePoint="BOTTOMRIGHT">
@@ -100,6 +96,12 @@
                 QuickHoP_OnLoad()
                 this:RegisterForDrag("LeftButton")
             </OnLoad>
+            <OnEvent>
+                QuickHoP_OnEvent(event)
+            </OnEvent>
+            <OnUpdate>
+                QuickHoP_OnUpdate(arg1)
+            </OnUpdate>
             <OnDragStart>
                 this:StartMoving()
             </OnDragStart>
@@ -109,13 +111,9 @@
             <OnShow>
                 QuickHoP_UpdateUI()
             </OnShow>
-            <OnUpdate>
-                QuickHoP_UpdateUI()
-            </OnUpdate>
         </Scripts>
     </Frame>
     
-    <!-- Options Frame -->
     <Frame name="QuickHoPOptionsFrame" parent="UIParent" frameStrata="DIALOG" toplevel="true" movable="true" enableMouse="true" hidden="true">
         <Size>
             <AbsDimension x="280" y="350"/>
@@ -147,7 +145,6 @@
                     </Anchors>
                 </FontString>
                 
-                <!-- Party List Header -->
                 <FontString name="$parentPartyHeader" inherits="GameFontNormal" text="Party/Raid HoP Targets:">
                     <Anchors>
                         <Anchor point="TOPLEFT">
@@ -158,7 +155,6 @@
                     </Anchors>
                 </FontString>
                 
-                <!-- Divider Line (approximate) -->
                 <FontString name="$parentDivider" inherits="GameFontNormalSmall" text="────────────────────────">
                     <Anchors>
                         <Anchor point="TOPLEFT">
