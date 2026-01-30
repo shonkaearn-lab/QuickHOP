@@ -17,6 +17,7 @@ local QuickHoP_HoPSpellIndex = nil
 local QuickHoP_HoPCooldown = 0
 local QuickHoP_PartyData = {}
 local QuickHoP_SyncTimer = 0
+local QuickHoP_UIUpdateTimer = 0
 local QuickHoP_AddonPrefix = "QkHoP"
 local QuickHoP_CachedSpellIndex = nil
 local QuickHoP_CachedSpellTexture = nil
@@ -45,8 +46,8 @@ function QuickHoP_OnUpdate(elapsed)
         QuickHoP_BroadcastTarget()
     end
     
-    QuickHoP_UIUpdateTimer = (QuickHoP_UIUpdateTimer or 0) + elapsed
-    if QuickHoP_UIUpdateTimer >= 1.0 then
+    QuickHoP_UIUpdateTimer = QuickHoP_UIUpdateTimer + elapsed
+    if QuickHoP_UIUpdateTimer >= 3.0 then
         QuickHoP_UIUpdateTimer = 0
         QuickHoP_UpdateUI()
     end
@@ -160,8 +161,6 @@ function QuickHoP_ShowHelp()
     DEFAULT_CHAT_FRAME:AddMessage("/qhop cast - Cast HoP on saved target")
     DEFAULT_CHAT_FRAME:AddMessage("/qhop show - Toggle UI window")
     DEFAULT_CHAT_FRAME:AddMessage("/qhop options - Open options menu")
-    DEFAULT_CHAT_FRAME:AddMessage("/qhop debug - Show debug info")
-    DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFF00Macros:|r /qhop set, /qhop clear, /qhop cast")
     DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFF00Tip:|r Bind keys in Key Bindings > QuickHoP")
 end
 
@@ -249,47 +248,62 @@ function QuickHoP_CastHoP()
         return
     end
     
-    local targetUnit = nil
-    
-    if UnitName("player") == QuickHoP_Settings.target then
-        targetUnit = "player"
-    elseif UnitExists("target") and UnitName("target") == QuickHoP_Settings.target then
-        targetUnit = "target"
-    elseif GetNumRaidMembers() > 0 then
-        for i = 1, GetNumRaidMembers() do
-            if UnitName("raid"..i) == QuickHoP_Settings.target then
-                targetUnit = "raid"..i
-                break
-            end
-        end
-    elseif GetNumPartyMembers() > 0 then
-        for i = 1, GetNumPartyMembers() do
-            if UnitName("party"..i) == QuickHoP_Settings.target then
-                targetUnit = "party"..i
-                break
-            end
-        end
-    end
-    
-    if not targetUnit then
-        QuickHoP_ShowFeedback(format(QuickHoP_TargetNotFound, QuickHoP_Settings.target), 1.0, 0.0, 0.0)
-        return
-    end
-    
     if not QuickHoP_HoPSpellIndex then
         QuickHoP_ShowFeedback(QuickHoP_SpellNotFound, 1.0, 0.0, 0.0)
         return
     end
     
-    if not SpellCanTargetUnit(targetUnit) then
-        QuickHoP_ShowFeedback(QuickHoP_BoPTargetNotInRange, 1.0, 0.0, 0.0)
+    local targetName = QuickHoP_Settings.target
+    local originalTarget = UnitName("target")
+    
+    -- Simple: Just target them by name
+    TargetByName(targetName, true)
+    
+    -- Verify we got the right target
+    if not UnitExists("target") or UnitName("target") ~= targetName then
+        QuickHoP_ShowFeedback(format(QuickHoP_TargetNotFound, targetName), 1.0, 0.0, 0.0)
+        -- Restore original target
+        if originalTarget then
+            TargetByName(originalTarget, true)
+        else
+            ClearTarget()
+        end
         return
     end
     
+    -- Check if dead
+    if UnitIsDead("target") then
+        QuickHoP_ShowFeedback(targetName.." is dead!", 1.0, 0.0, 0.0)
+        -- Restore original target
+        if originalTarget then
+            TargetByName(originalTarget, true)
+        else
+            ClearTarget()
+        end
+        return
+    end
+    
+    -- Check range (30 yards for HoP)
+    if not CheckInteractDistance("target", 4) then
+        QuickHoP_ShowFeedback(QuickHoP_BoPTargetNotInRange, 1.0, 0.0, 0.0)
+        -- Restore original target
+        if originalTarget then
+            TargetByName(originalTarget, true)
+        else
+            ClearTarget()
+        end
+        return
+    end
+    
+    -- Cast the spell
     CastSpell(QuickHoP_HoPSpellIndex, BOOKTYPE_SPELL)
-    if SpellIsTargeting() then
-        SpellTargetUnit(targetUnit)
-        QuickHoP_ShowFeedback(format(QuickHoP_BoPCastSuccess, QuickHoP_Settings.target), 0.0, 1.0, 0.0)
+    QuickHoP_ShowFeedback(format(QuickHoP_BoPCastSuccess, targetName), 0.0, 1.0, 0.0)
+    
+    -- Restore original target
+    if originalTarget and originalTarget ~= targetName then
+        TargetByName(originalTarget, true)
+    elseif not originalTarget then
+        ClearTarget()
     end
 end
 
