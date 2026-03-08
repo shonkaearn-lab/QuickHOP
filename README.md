@@ -1,100 +1,105 @@
 # QuickHoP
 
-Quick Hand of Protection targeting addon for World of Warcraft 1.12 (Vanilla) and TurtleWoW.
-
-## Features
-
-- **One-Click HoP Casting**: Set a target once, cast HoP instantly with a single click
-- **Visual UI**: Compact, draggable interface showing your target and cooldown
-- **Highest Rank Detection**: Always casts the highest rank of Hand of Protection you have
-- **Keybindings**: Bind keys for setting target, clearing target, and casting
-- **Party/Raid Sync**: See what other paladins with QuickHoP are protecting
-- **Macro Support**: Use `/qhop` commands in macros for advanced functionality
+Hand of Protection targeting addon for WoW 1.12 / TurtleWoW.
 
 ## Installation
 
-### Via Git Addons Manager (Recommended)
-1. Install [Git Addons Manager](https://github.com/beholder-rpa/git-addons-manager) for TurtleWoW
-2. Add addon: `https://github.com/shonkaearn-lab/QuickHoP`
-3. Click Install
-4. Restart WoW
+**Via Git Addons Manager:**
+1. Add `https://github.com/shonkaearn-lab/QuickHoP` and install.
 
-### Manual Installation
-1. Download the latest release
-2. Extract the `QuickHoP` folder to `Interface/AddOns/`
-3. Restart WoW
+**Manual:**
+1. Extract the `QuickHoP` folder into `Interface/AddOns/`.
+2. Restart WoW.
 
-## Usage
+---
 
-### Main UI Controls
+## For Paladins
 
-The main UI shows your HoP target, the spell icon, and cooldown timer.
+### Setup
+- **Right-click** the button to set your current target as your HoP target.
+- **Left-click** to cast HoP on that target instantly, regardless of what you have targeted.
+- The button shows your saved target name, spell icon, and live cooldown.
+- Drag the button anywhere to reposition it.
 
-- **Left-click**: Cast HoP on your saved target
-- **Right-click**: Set current target as HoP target
-- **Alt+Right-click**: Clear saved target
-- **Shift+Right-click**: Hide UI
-- **Ctrl+Left-click**: Open options menu
-- **Drag**: Click and drag anywhere on the UI to move it
+### Controls
+| Action | Result |
+|---|---|
+| Left-click | Cast HoP |
+| Right-click | Set current target |
+| Alt + Right-click | Clear target |
+| Shift + Right-click | Hide UI |
+| Ctrl + Left-click | Open options |
 
 ### Slash Commands
+```
+/qhop set       Set current target
+/qhop clear     Clear saved target
+/qhop cast      Cast HoP
+/qhop show      Toggle UI visibility
+/qhop status    Print current target to chat
+/qhop options   Open options menu
+/qhop help      List all commands
+```
 
-- `/qhop set` - Set your current target as HoP target
-- `/qhop clear` - Clear your saved HoP target
-- `/qhop cast` - Cast HoP on your saved target
-- `/qhop show` - Toggle UI visibility
-- `/qhop options` - Open options menu
-- `/qhop help` - Show help
-
-### Keybindings
-
-Go to **Key Bindings > QuickHoP** to set up hotkeys:
+### Keybinds
+**Key Bindings → QuickHoP:**
 - Set HoP Target
 - Clear HoP Target
 - Cast HoP on Target
 
-## How It Works
+---
 
-1. **Set a target**: Right-click the UI (or use `/qhop set`) while targeting someone
-2. **Cast HoP**: Left-click the UI (or use `/qhop cast`) to instantly cast HoP on that person
-3. **No target needed**: The addon finds and casts on your saved target even if you're targeting something else
+## For Casters (non-Paladins)
 
-## Party/Raid Sync
+When a Paladin saves you as their HoP target, a small button appears on your screen showing the HoP spell icon and cooldown. Click it (or use `/hoprequest`) to signal your Paladin to cast HoP on you.
 
-If multiple paladins in your party/raid use QuickHoP:
-- Each paladin's HoP target is shared automatically
-- Open the options menu to see who is protecting whom
+- **Click** — Send HoP request
+- **Ctrl + Click** — Open options
+- **Drag** — Reposition
+- **Keybind** — Key Bindings → QuickHoP → Request HoP
 
-## Target Finding
+The button only appears when a Paladin in your group has assigned you as their target. The cooldown shown reflects the Paladin's actual remaining cooldown (accounting for talents/spec).
 
-You can set anyone as your HoP target and the addon will find them as long as they're:
-- Friendly
-- Alive+
-- Within 30 yards
+---
 
-## FAQ
+## HoP Request Notifications (Paladins)
 
-**Q: Can I cast on myself?**  
-A: Yes! Target yourself and right-click to set, or left-click when you have yourself targeted.
+When your assigned caster sends a request, you receive one or more alerts. Configure which ones fire in the options menu (`/qhop options`).
 
-**Q: Does it work outside of party/raid?**  
-A: Yes! You can set anyone as your target, even if they're not in your group.
+| Notification | Default | Description |
+|---|---|---|
+| Screen Flash | ON | Blue pulse on all four screen edges |
+| Center Icon | ON | HoP icon appears center-screen, pulses, draggable |
+| Sound | OFF | Plays a raid warning sound |
+| Chat Message | OFF | Prints a message to chat |
 
-**Q: Which rank does it cast?**  
-A: Always the highest rank you have learned.
+The center icon auto-dismisses after 5 seconds or when HoP is successfully cast.
 
-**Q: Can I see other paladins' targets?**  
-A: Yes, if they also use QuickHoP. Open the options menu to see the party/raid list.
+---
 
-**Q: How do I hide the UI?**  
-A: Shift+Right-click the UI, or use `/qhop show`
+## Options Menu
 
-**Q: The UI is too big/small**  
-A: Ctrl+Left-click to open options, then adjust the UI Scale slider.
+Open with `/qhop options` or Ctrl + Left-click either button.
 
-## Compatibility
+- **HoP Assignments** — See which Paladins in your group are using QuickHoP and who they're protecting.
+- **Paladin UI Scale** — Resize the Paladin button (0.5–2.0×).
+- **Alert Icon Size** — Resize the center notification icon (0.5–3.0×).
+- **Caster Button Size** — Resize the caster request button (0.5–2.0×).
+- **Announce HoP** — Optionally post a chat message when HoP is cast. Customisable message (`<n>` = target name), party or raid channel.
+- **Notifications** — Toggle screen flash, center icon, sound, and chat message individually.
 
-- **Client**: WoW 1.12 (Vanilla)
-- **Server**: TurtleWoW, any 1.12 server
-- **Class**: Paladin only (UI auto-hides for other classes)
+---
 
+## Party / Raid Sync
+
+Paladins with QuickHoP broadcast their saved target to the group automatically. This is how the options panel shows the full assignment list, and how casters know when to show their request button. No configuration needed — it's always on.
+
+---
+
+## Notes
+
+- Always casts the highest rank of Hand of Protection you have learned.
+- Casts on your saved target even if you have something else targeted; restores your previous target after.
+- Works solo (no group required) — sync features simply don't activate.
+- UI auto-hides for non-Paladins; caster button auto-hides for Paladins.
+- Compatible with WoW 1.12, TurtleWoW, and any 1.12-based server.
