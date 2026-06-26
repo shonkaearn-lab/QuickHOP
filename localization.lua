@@ -19,6 +19,7 @@ QuickHoP_BoPTargetNotSet = "No HoP target set!"
 QuickHoP_NoValidTarget = "No valid target selected!"
 QuickHoP_TargetNotFound = "%s not found in raid/party!"
 QuickHoP_SpellNotFound = "Hand of Protection not found in spellbook!"
+QuickHoP_DefaultAnnounceMsg = "I cast HoP on <name>!"
 
 -- German
 if (GetLocale() == "deDE") then
